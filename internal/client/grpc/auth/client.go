@@ -2,45 +2,33 @@ package auth
 
 import (
 	"context"
-	"time"
 
-	"github.com/olezhek28/auth/pkg/note_v1"
-	"google.golang.org/protobuf/types/known/timestamppb"
+	"github.com/olezhek28/auth/pkg/access_v1"
 )
 
 var _ Client = (*client)(nil)
 
-type Info struct {
-	Title     string
-	Content   string
-	CreatedAt time.Time
-}
-
 type Client interface {
-	Create(ctx context.Context, info Info) (int64, error)
+	Check(ctx context.Context, endpoint string) (bool, error)
 }
 
 type client struct {
-	noteClient note_v1.NoteV1Client
+	accessClient access_v1.AccessV1Client
 }
 
-func NewClient(cl note_v1.NoteV1Client) *client {
+func NewClient(cl access_v1.AccessV1Client) *client {
 	return &client{
-		noteClient: cl,
+		accessClient: cl,
 	}
 }
 
-func (c *client) Create(ctx context.Context, info Info) (int64, error) {
-	res, err := c.noteClient.Create(ctx, &note_v1.CreateRequest{
-		Info: &note_v1.NoteInfo{
-			Title:     info.Title,
-			Content:   info.Content,
-			CreatedAt: timestamppb.New(info.CreatedAt),
-		},
+func (c *client) Check(ctx context.Context, endpoint string) (bool, error) {
+	ok, err := c.accessClient.Check(ctx, &access_v1.CheckRequest{
+		EndpointAddress: endpoint,
 	})
 	if err != nil {
-		return 0, err
+		return false, err
 	}
 
-	return res.GetId(), nil
+	return ok.GetIsAllowed(), nil
 }
