@@ -3,21 +3,22 @@ package interceptor
 import (
 	"context"
 
-	"github.com/olezhek28/chat_server/internal/client/grpc/auth"
-	"github.com/pkg/errors"
+	"github.com/olezhek28/chat_server/internal/clients/grpc/auth"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
 
-type AuthInterceptor struct {
+type authInterceptor struct {
 	authClient auth.Client
 }
 
-func NewAuthInterceptor(authClient auth.Client) *AuthInterceptor {
-	return &AuthInterceptor{authClient: authClient}
+func NewAuthInterceptor(authClient auth.Client) *authInterceptor {
+	return &authInterceptor{
+		authClient: authClient,
+	}
 }
 
-func (i *AuthInterceptor) Unary() grpc.UnaryServerInterceptor {
+func (i *authInterceptor) Unary() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 		md, ok := metadata.FromIncomingContext(ctx)
 		if ok {
@@ -26,7 +27,7 @@ func (i *AuthInterceptor) Unary() grpc.UnaryServerInterceptor {
 
 		ok, err = i.authClient.Check(ctx, info.FullMethod)
 		if err != nil || !ok {
-			return nil, errors.Wrap(err, "failed to check access")
+			return nil, err
 		}
 
 		return handler(ctx, req)

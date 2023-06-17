@@ -2,8 +2,9 @@ package auth
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/olezhek28/auth/pkg/access_v1"
+	accessV1 "github.com/olezhek28/auth/pkg/access_v1"
 )
 
 var _ Client = (*client)(nil)
@@ -13,22 +14,21 @@ type Client interface {
 }
 
 type client struct {
-	accessClient access_v1.AccessV1Client
+	accessClient accessV1.AccessV1Client
 }
 
-func NewClient(cl access_v1.AccessV1Client) *client {
+func NewClient(cl accessV1.AccessV1Client) *client {
 	return &client{
 		accessClient: cl,
 	}
 }
 
 func (c *client) Check(ctx context.Context, endpoint string) (bool, error) {
-	ok, err := c.accessClient.Check(ctx, &access_v1.CheckRequest{
+	if _, err := c.accessClient.Check(ctx, &accessV1.CheckRequest{
 		EndpointAddress: endpoint,
-	})
-	if err != nil {
-		return false, err
+	}); err != nil {
+		return false, fmt.Errorf("accessClient.Check: %w", err)
 	}
 
-	return ok.GetIsAllowed(), nil
+	return true, nil
 }
