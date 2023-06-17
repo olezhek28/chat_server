@@ -57,7 +57,7 @@ func (s *serviceProvider) AuthClient(ctx context.Context) authClient.Client {
 
 func (s *serviceProvider) ChatImpl(ctx context.Context) *chatV1.Implementation {
 	if s.chatImpl == nil {
-		s.chatImpl = chatV1.NewImplementation(s.ChatService(ctx))
+		s.chatImpl = chatV1.NewImplementation()
 	}
 
 	return s.chatImpl
