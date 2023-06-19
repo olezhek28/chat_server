@@ -22,5 +22,8 @@ type Implementation struct {
 }
 
 func NewImplementation() *Implementation {
-	return &Implementation{}
+	return &Implementation{
+		chats:    make(map[string]*Chat),
+		channels: make(map[string]chan *desc.Message),
+	}
 }
